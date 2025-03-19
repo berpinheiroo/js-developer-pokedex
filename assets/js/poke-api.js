@@ -17,19 +17,31 @@ function convertPokeApiDetailToPokemon(pokeDetail) {
     return pokemon
 }
 
+function handleFetchError(response) {
+    if (!response.ok) {
+        throw new Error('Erro ao buscar os dados: ' + response.statusText);
+    }
+    return response.json();
+}
+
 pokeApi.getPokemonDetail = (pokemon) => {
     return fetch(pokemon.url)
-        .then((response) => response.json())
+        .then(handleFetchError)
         .then(convertPokeApiDetailToPokemon)
+        .catch((error) => {
+            console.error('Erro ao obter detalhes do Pokémon:', error);
+        });
 }
 
 pokeApi.getPokemons = (offset = 0, limit = 5) => {
-    const url = `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`
-
+    const url = `https://pokeapi.co/api/v2/pokemon?offset=${offset}&limit=${limit}`;
+    
     return fetch(url)
-        .then((response) => response.json())
+        .then(handleFetchError)
         .then((jsonBody) => jsonBody.results)
         .then((pokemons) => pokemons.map(pokeApi.getPokemonDetail))
         .then((detailRequests) => Promise.all(detailRequests))
-        .then((pokemonsDetails) => pokemonsDetails)
+        .catch((error) => {
+            console.error('Erro ao obter lista de Pokémons:', error);
+        });
 }
